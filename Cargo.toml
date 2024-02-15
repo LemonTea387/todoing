@@ -9,4 +9,5 @@ edition = "2021"
 anyhow = "1.0.79"
 chrono = "0.4.34"
 clap = "4.5.0"
-sqlx = { version = "0.7.3", features = ["sqlite", "macros"] }
+sqlx = { version = "0.7.3", features = ["sqlite", "macros", "chrono", "runtime-tokio"] }
+tokio = { version = "1.36.0", features = ["macros", "rt"] }

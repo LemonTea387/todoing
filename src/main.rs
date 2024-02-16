@@ -1,5 +1,8 @@
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
-use todoing::{add_task, list_tasks, Task};
+use todoing::{
+    database::{add_task, list_tasks},
+    task::{Task, TaskPriority},
+};
 
 const DB_URL: &str = "sqlite://todoing.db";
 
@@ -20,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     println!("Adding Task: ");
     add_task(
         &todo_db,
-        Task::new("Test1", Some("Hello pulis"), todoing::TaskPriority::Low),
+        Task::new("Test1", Some("Hello pulis"), TaskPriority::Low),
     )
     .await?;
 

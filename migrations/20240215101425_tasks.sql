@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS tasks_activity
   started_dt  DATETIME,
   ended_dt    DATETIME,
   task_id     INTEGER NOT NULL,
-  FOREIGN KEY(task_id) REFERENCES tasks(id)
+  FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );

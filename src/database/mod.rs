@@ -1,7 +1,7 @@
 use std::{error::Error, fmt::Display};
 
-use chrono::Utc;
-use sqlx::{sqlite::SqliteRow, FromRow, Row, SqlitePool};
+use chrono::{NaiveDate, Utc};
+use sqlx::{sqlite::SqliteRow, FromRow, QueryBuilder, Row, Sqlite, SqlitePool};
 
 const STATE_TODO: i32 = 0;
 const STATE_DOING: i32 = 1;
@@ -77,7 +77,7 @@ pub async fn add_task(pool: &SqlitePool, task: Task) -> Result<i64, sqlx::Error>
     Ok(id)
 }
 
-pub async fn list_tasks(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn list_tasks(pool: &SqlitePool) -> Result<Vec<Task>, sqlx::Error> {
     let tasks = sqlx::query_as::<_, Task>(
         r#"
     SELECT id, title, description, priority, created_dt, status, started_dt, ended_dt
@@ -88,12 +88,27 @@ pub async fn list_tasks(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     )
     .fetch_all(pool)
     .await?;
-    for task in tasks {
-        println!(
-            "Task {}: {}\nStatus : {:?}\nPriority : {:?}\nDate of Creation: {}\n{:?}",
-            task.id, task.title, task.status, task.priority, task.date_created, task.description
-        );
-    }
+    Ok(tasks)
+}
 
-    Ok(())
+pub async fn list_tasks_filter(
+    pool: &SqlitePool,
+    day: Option<NaiveDate>,
+) -> Result<Vec<Task>, sqlx::Error> {
+    let mut query = QueryBuilder::<Sqlite>::new(
+        r#"
+    SELECT id, title, description, priority, created_dt, status, started_dt, ended_dt
+    FROM tasks 
+    INNER JOIN tasks_activity ON tasks.id = tasks_activity.task_id 
+    WHERE 1=1
+        "#,
+    );
+    if let Some(date) = day {
+        query.push(" AND DATE(created_dt) = DATE(");
+        query.push_bind(date);
+        query.push(")");
+    }
+    query.push("ORDER BY DATETIME(created_dt)");
+    let tasks = query.build_query_as::<Task>().fetch_all(pool).await?;
+    Ok(tasks)
 }

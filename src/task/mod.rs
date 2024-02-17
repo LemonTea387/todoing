@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::{DateTime, Utc};
 #[derive(Debug, sqlx::Type, Clone, Copy)]
 #[repr(i32)]
@@ -40,5 +42,15 @@ impl Task {
             status: TaskStatus::Todo,
             priority,
         }
+    }
+}
+
+impl Display for Task {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Task {}: {}\nStatus : {:?}\nPriority : {:?}\nDate of Creation: {}\n{:?}",
+            self.id, self.title, self.status, self.priority, self.date_created, self.description
+        )
     }
 }

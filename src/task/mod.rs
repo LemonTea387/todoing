@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-#[derive(Debug, sqlx::Type)]
+#[derive(Debug, sqlx::Type, Clone, Copy)]
 #[repr(i32)]
 pub enum TaskPriority {
     Low = 1,
@@ -8,7 +8,7 @@ pub enum TaskPriority {
     Urgent,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TaskStatus {
     Todo,
     Doing {

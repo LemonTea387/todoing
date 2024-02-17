@@ -60,7 +60,7 @@ pub async fn add_task(pool: &SqlitePool, task: Task) -> Result<i64, sqlx::Error>
     )
     .bind(task.title)
     .bind(task.description.unwrap_or("NULL".to_string()))
-    .bind(TaskPriority::Low as i32)
+    .bind(task.priority as i32)
     .execute(pool)
     .await?
     .last_insert_rowid();
@@ -91,9 +91,15 @@ pub async fn list_tasks(pool: &SqlitePool) -> Result<Vec<Task>, sqlx::Error> {
     Ok(tasks)
 }
 
+#[derive(Debug, Default)]
+pub struct TaskFilterQuery {
+    pub day: Option<NaiveDate>,
+    pub priority: Option<TaskPriority>,
+}
+
 pub async fn list_tasks_filter(
     pool: &SqlitePool,
-    day: Option<NaiveDate>,
+    filter: &TaskFilterQuery,
 ) -> Result<Vec<Task>, sqlx::Error> {
     let mut query = QueryBuilder::<Sqlite>::new(
         r#"
@@ -103,10 +109,14 @@ pub async fn list_tasks_filter(
     WHERE 1=1
         "#,
     );
-    if let Some(date) = day {
+    if let Some(date) = filter.day {
         query.push(" AND DATE(created_dt) = DATE(");
         query.push_bind(date);
         query.push(")");
+    }
+    if let Some(priority) = filter.priority {
+        query.push(" AND priority = ");
+        query.push_bind(priority as i32);
     }
     query.push("ORDER BY DATETIME(created_dt)");
     let tasks = query.build_query_as::<Task>().fetch_all(pool).await?;

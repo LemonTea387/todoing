@@ -59,7 +59,7 @@ impl EventHandler {
         Self { rx }
     }
 
-    async fn next(&self) -> Option<Event> {
-        Ok(self.rx.recv().await)
+    async fn next(&mut self) -> Option<Event> {
+        self.rx.recv().await
     }
 }
